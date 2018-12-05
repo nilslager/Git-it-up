@@ -10,8 +10,25 @@ for line in f:
 print ("Done.",len(model)," words loaded!")
 
 print (model['the'])
+#open the reviews and split the sentences into words
+words_found = 0
 
-
+path='/Users/henriparssinen/desktop/Introduction to AI/keio2018aia/course/general/project1/data/senti_binary.train'
+revfile=open(path,"r")
+for line in revfile:
+    splitrline=line.split()
+    for i in splitrline:
+        if i==1 or i==0:
+            splitrline[i]=i
+        else:
+            try: 
+                splitrline[i] = model[word]
+                words_found += 1
+            except KeyError:
+                    splitrline[i] = np.random.normal(scale=0.6, size=(50, ))    
+        
+    print(splitrline)
+    
 matrix_len = len(model)
 weights_matrix = np.zeros((matrix_len, 50))
 words_found = 0
@@ -21,6 +38,8 @@ for i, word in enumerate(model):
     try: 
         weights_matrix[i] = model[word]
         words_found += 1
+    except word==1 or word == 0:
+        weights_matrix[1]=word
     except KeyError:
         weights_matrix[i] = np.random.normal(scale=0.6, size=(50, ))
 
@@ -54,4 +73,6 @@ class ToyNN(nn.Module):
 
     def init_hidden(self, batch_size):
         return Variable(torch.zeros(self.num_layers, batch_size, self.hidden_size))
+    
+
         
