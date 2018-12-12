@@ -8,6 +8,7 @@ Created on Sat Dec  8 14:38:33 2018
 import numpy as np
 f = open("/Users/Ola/Documents/School/Keio/keio2018aia/course/general/project1/data/wv_50d.txt",'r')
 model = {}
+new_model = {}
 for line in f:
     splitLine = line.split()
     word = splitLine[0]
@@ -40,10 +41,11 @@ for i in range(len(ready_rev)):
             if ready_rev[i][j+1] is "'s":
                 ready_rev[i][j]=ready_rev[i][j]+ready_rev[i][j+1]
                 j=j-1
-            for k in range(len(model)):
-                try:
-                    ready_rev_edit[i][j]=model[ready_rev[i][j]]
-                except KeyError:
+            try:
+                ready_rev_edit[i][j]=model[ready_rev[i][j]]
+            except KeyError:
+                new_model.update({ready_rev[i][j]:np.zeros(50)})
+                    
                     
             
             
