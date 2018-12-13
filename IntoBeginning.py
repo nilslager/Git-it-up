@@ -2,22 +2,17 @@ import tensorflow as tf
 # -*- coding: utf-8 -*-
 """
 Created on Sat Dec  8 14:38:33 2018
-@author: henriparssinen
+@author: OlaBandola
 """
 
 import numpy as np
-f = open("/Users/Ola/Documents/School/Keio/keio2018aia/course/general/project1/data/wv_50d.txt",'r')
+f = open("C:/Users/Ola/Documents/School/Keio/keio2018aia/course/general/project1/data/wv_50d.txt",'r')
 model = {}
-new_model = model
 for line in f:
     splitLine = line.split()
     word = splitLine[0]
     embedding = np.array([float(val) for val in splitLine[1:]])
     model[word] = embedding
-print ("Done.",len(model)," words loaded!")
-
-print(model["characters"])
-print(model["0"])
 
 path='/Users/Ola/Documents/School/Keio/keio2018aia/course/general/project1/data/senti_binary.train'
 revfile=open(path)
@@ -43,7 +38,8 @@ for i in range(len(ready_rev)):
             try:
                 ready_rev_edit[i][j]=model[ready_rev[i][j]]
             except KeyError:
-                new_model.update({ready_rev[i][j]:np.zeros(50)})
+                model.update({ready_rev[i][j]:np.zeros(50)})
+                ready_rev_edit[i][j]=model[ready_rev[i][j]]
                     
                     
             
