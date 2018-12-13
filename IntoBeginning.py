@@ -8,7 +8,7 @@ Created on Sat Dec  8 14:38:33 2018
 import numpy as np
 f = open("/Users/Ola/Documents/School/Keio/keio2018aia/course/general/project1/data/wv_50d.txt",'r')
 model = {}
-new_model = {}
+new_model = model
 for line in f:
     splitLine = line.split()
     word = splitLine[0]
@@ -31,8 +31,7 @@ def revfile_clean():
     return clean_lines
 
 ready_rev=revfile_clean() 
-ready_rev_edit=ready_rev
-print(ready_rev)       
+ready_rev_edit=ready_rev      
 
 #1 replace words with vectors
 for i in range(len(ready_rev)):
