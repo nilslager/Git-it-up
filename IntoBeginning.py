@@ -36,8 +36,8 @@ def revfile_clean():
 ready_rev=revfile_clean() 
 ready_rev_edit=revfile_clean()      
 sum_ready_rev=np.zeros(50)
-total_sum_ready_rev=[]
-indicator=[]
+input_average=[]
+output_sentiment=[]
 
 
 # Update dictionary
@@ -134,16 +134,8 @@ for i in range(len(ready_rev)):
             sum_ready_rev=sum_ready_rev+model[ready_rev[i][j]]
         else:
             sum_ready_rev=sum_ready_rev/(len(ready_rev[i])-1)
-            indicator.append(ready_rev[i][-1])
-    total_sum_ready_rev.append(sum_ready_rev)
+            output_sentiment.append(ready_rev[i][-1])
+    input_average.append(sum_ready_rev)
     
     #inster class function here
-
-
-names = ['neg','pos']   
-texts,labels = [],[]
-for idx,label in enumerate(names):
-    for fname in glob.glob(os.path.join(f'{path}train', label, '*.*')):
-        texts.append(open(fname, 'r').read())
-        labels.append(idx)
-trn,trn_y= texts, np.array(labels).astype(np.int64)
+data = list(zip(input_average, output_sentiment))
