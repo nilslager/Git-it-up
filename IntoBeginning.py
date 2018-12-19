@@ -135,7 +135,7 @@ for i in range(len(ready_rev)):
         else:
             sum_ready_rev=sum_ready_rev/(len(ready_rev[i])-1)
             indicator.append(ready_rev[i][-1])
-    total_sum_ready_rev=total_sum_ready_rev+sum_ready_rev
+    total_sum_ready_rev.append(sum_ready_rev)
     
     #inster class function here
 
