@@ -20,7 +20,7 @@ for line in f:
     splitLine = line.split()
     word = splitLine[0]
     embedding = np.array([float(val) for val in splitLine[1:]])
-    model[word] = embedding
+    dictionary[word] = embedding
 
 path='/Users/Ola/Documents/School/Keio/AI/senti_binary.train'
 revfile=open(path)
@@ -45,9 +45,9 @@ for i in range(len(ready_rev)):
     for j in range(len(ready_rev[i])):
         if j is not (len(ready_rev[i])-1):
             try:
-                model[ready_rev[i][j]]
+                dictionary[ready_rev[i][j]]
             except KeyError:
-                model.update({ready_rev[i][j]:np.zeros(50)})
+                dictionary.update({ready_rev[i][j]:np.zeros(50)})
 
 
 # Model creatation
@@ -131,11 +131,17 @@ class Trainer():
 for i in range(len(ready_rev)):
     for j in range(len(ready_rev[i])):
         if j is not (len(ready_rev[i])-1):
-            sum_ready_rev=sum_ready_rev+model[ready_rev[i][j]]
+            sum_ready_rev=sum_ready_rev+dictionary[ready_rev[i][j]]
         else:
             sum_ready_rev=sum_ready_rev/(len(ready_rev[i])-1)
             output_sentiment.append(ready_rev[i][-1])
     input_average.append(sum_ready_rev)
-    
-    #inster class function here
+
 data = list(zip(input_average, output_sentiment))
+
+#Inster class function here
+model = Model(50, 100, 20, 1)
+trainer = Trainer(model, data)
+
+
+
