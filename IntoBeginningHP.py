@@ -50,6 +50,7 @@ for i in range(len(ready_rev)):
             except KeyError:
                 dictionary.update({ready_rev[i][j]:np.zeros(50)})
                 ready_rev_edit[i][j]=dictionary[ready_rev[i][j]]
+
 #create a list of neg or pos reviews --> outputs                
 outputs=[]
 for sent in ready_rev_edit:
@@ -62,22 +63,13 @@ inputs=[]
 for sent in ready_rev_edit:
     avgs=np.mean(sent,axis=0)
     inputs.append(avgs)
-    
-outputs=np.array(outputs)
-outputs=outputs.astype(np.double)
+  
+#combining lists-->list of tuples
+data=list(zip(inputs,outputs))
 print(type(inputs[0]))
 print(type(outputs[0]))
-print(type(inputs))
-#inputs=np.array(inputs)
-#outputs=np.array(outputs)
-#ny=np.column_stack((inputs, outputs))
-#inputs=inputs.astype(np.float32)
-#inputs=torch.from_numpy(inputs)
-#outputs=outputs.astype(np.float32)
-#outputs=torch.from_numpy(outputs)
-#ny_n=ny.astype(np.float32)
-#data=torch.from_numpy(ny_n)
-data=list(zip(inputs,outputs))
+
+
 
 class Model(nn.Module):
     
@@ -112,14 +104,16 @@ class Model(nn.Module):
 model = Model(50, 100, 20, 1)
 model.double()
 
+
 class Trainer():
     
     def __init__(self, model, data):
         
         self.model = model
         self.data = data
-        
-        self.train_loader = torch.utils.data.DataLoader(dataset=self.data, batch_size=8, shuffle=True)
+
+        self.train_loader = torch.utils.data.DataLoader(dataset=self.data, batch_size=10, shuffle=True)
+    
         
     def train(self, lr, ne):
         
@@ -129,7 +123,7 @@ class Trainer():
         self.model.train()
         
         self.costs = []
-        
+
         for e in range(ne):
             
             print('training epoch %d / %d ...' %(e+1, ne))
@@ -148,15 +142,12 @@ class Trainer():
                 loss.backward()
                 optimizer.step()
                 
+                
             self.costs.append(train_cost/len(data))
             print('cost: %f' %(self.costs[-1]))
             
 trainer = Trainer(model, data)
 
-trainer.train(0.001, 10)
+trainer.train(0.005, 10)
 plt.plot(range(len(trainer.costs)), trainer.costs)
 
-
-
-plt.scatter(inputs, outputs, c='k', marker='o', s=0.1)
-plt.scatter(inputs, model(torch.tensor(inputs)).detach().numpy().flatten(), c='r', marker='o', s=0.1)
