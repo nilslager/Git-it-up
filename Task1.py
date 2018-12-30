@@ -5,6 +5,7 @@ Created on Tue Dec 25 19:10:25 2018
 @author: Ola
 """
 
+###importing necesary packages
 import torch
 import torch.utils.data
 from torch import nn
@@ -16,70 +17,91 @@ rcParams['figure.figsize'] = 15, 10
 import numpy as np
 
 #Create Dictionary
-file = open('/Users/Ola/Documents/School/Keio/AI/wv_50d.txt' , 'r' , encoding='UTF-8') #may need encoding
+#Open file address and saving data to file
+file = open('/Users/Ola/Documents/School/Keio/AI/wv_50d.txt' , 'r' , encoding='UTF-8')
+#Define type for dictionary
 dictionary = {}
+#Begins loop, picking out single word's tied to 50 length vectors
 for line in file:
+    #Splits values into vector using split method
     splitLine = line.split()
+    #Picks out word in vector
     word = splitLine[0]
+    #Takes numbered values and turns them into 50 vector array of floating numbers
     embedding = np.array([float(val) for val in splitLine[1:]])
     dictionary[word] = embedding
 
-#Create Array 
+#Create Array
+#Set working path to training data
 path='/Users/Ola/Documents/School/Keio/AI/senti_binary.train'
+#Creates function returning workable data
 def revfile_clean():
+    #Defines data to be used in function
     revfile=open(path)
+    #Creates new list
     clean_lines=list()
+    #Starts for loop going through sentances string
     for line in revfile:
+        #Split sentance string into single word strings
         splitrline=line.split()
+        #Adds list of vectors to return target
         clean_lines.append(splitrline)
+    #returns value to global variable
     return clean_lines
 
+#Runs and puts return target from funtion revfile_clean into new variable
 ready_rev=revfile_clean() 
-ready_rev_edit=ready_rev      
 
-#1 replace words with vectors
+####replace words with vectors
 
-#Class clean(datatype, data)
-
-    #def __init__(self, input_dim, hidden1_dim, hidden2_dim, output_dim):
-
-    #def clean:
-for i in range(len(ready_rev)):
-    for j in range(len(ready_rev[i])):
-        if j is not (len(ready_rev[i])-1):
-            try:
-                ready_rev_edit[i][j]=dictionary[ready_rev[i][j]]
-            except KeyError:
-                dictionary.update({ready_rev[i][j]:np.zeros(50)})
-                ready_rev_edit[i][j]=dictionary[ready_rev[i][j]]
-    
-    #def out_train:
-    
-    #def out_test:
+#Creates Dataloader class 
+class Dataloader():
+    #defines init  method
+    def __init__(self, in_data):
+        #
+        self.in_data=in_data
         
-#create a list of neg or pos reviews --> outputs                
-outputs=[]
-for sent in ready_rev_edit:
-    outputs.append(sent[-1])
-    del sent[-1]
-outputs=np.array(outputs)
-outputs=outputs.astype(np.double)
+    def extractor(self):
+        #Starts for loop with values equal to number of sentances
+        for i in range(len(self.in_data)):
+            #Starts for loop with values equal to number of words in sentance
+            for j in range(len(self.in_data[i])):
+                if j is not (len(self.in_data[i])-1):
+                    try:
+                        self.in_data[i][j]=dictionary[self.in_data[i][j]]
+                    except KeyError:
+                        dictionary.update({self.in_data[i][j]:np.zeros(50)})
+                        self.in_data[i][j]=dictionary[self.in_data[i][j]]
+    
+    def seperator_out(self):
+        self.outputs=[]
+        for sent in self.in_data:
+            self.outputs.append(sent[-1])
+            del sent[-1]
+        self.outputs=np.array(self.outputs)
+        self.outputs=self.outputs.astype(np.double)
+        return(self.outputs)
 ##create a list of averaged sentences--> inputs
-inputs=[]
-for sent in ready_rev_edit:
-    avgs=np.mean(sent,axis=0)
-    inputs.append(avgs)
+    def seperator_in(self):
+        self.inputs=[]
+        for sent in self.in_data:
+            avgs=np.mean(sent,axis=0)
+            self.inputs.append(avgs)
+        return(self.inputs)
+
+
+    #def out_test:
+
+dataloader=Dataloader(ready_rev)
+dataloader.extractor()
 
 #Create dataset
+outputs=dataloader.seperator_out()
+inputs=dataloader.seperator_in()
 data=list(zip(inputs,outputs))
 
-def text_preprocess(sentence):
-    sentence_text = re.sub(r'[^\w\s]','', sentence)
-    words = sentence_text.lower().split()
-    return (words)
 
-
-
+###we can remove this I think
 def sentence_to_mean_embeddings(review):
     for j in range(len(review)):
         if review[j] is not (len(review)-1):
@@ -88,14 +110,10 @@ def sentence_to_mean_embeddings(review):
             except KeyError:
                 dictionary.update({review[j]:np.zeros(50)})
                 review[j]=dictionary[review[j]]
-    for sent in review:
-        avgs_test=np.mean(sent,axis=0)
+    avgs_test=torch.from_numpy(np.mean(review, axis=0))
     return (avgs_test)
 
 
-
-
-    
 
 ###Create model
 
@@ -129,9 +147,10 @@ class Model(nn.Module):
         
         return out
 
-    
 model = Model(50, 100, 20, 1)
 model.double()
+   
+        
 
 ###Create Trainer
 class Trainer():
@@ -142,45 +161,93 @@ class Trainer():
         self.data = data
         
         self.train_loader = torch.utils.data.DataLoader(dataset=self.data, batch_size=10, shuffle=True)
-        
+    
+    #Creates method train
     def train(self, lr, ne):
         
+        #Defines pytorch function for finding mean square error as criterion
         criterion = nn.MSELoss()
-        optimizer = torch.optim.SGD(self.model.parameters(), lr=lr, momentum=0.1)
-
+        #Defines pytorch function for optimizing variables
+        optimizer = torch.optim.SGD(self.model.parameters(), lr=lr, momentum=0.1)#explore
         self.model.train()
-        
         self.costs = []
         
         for e in range(ne):
-            
+            #Displays times neural network is trained
             print('training epoch %d / %d ...' %(e+1, ne))
             
+            #Creates new value train_cost
             train_cost = 0
         
             for batch_idx, (inputs, targets) in enumerate(self.train_loader):
-
+                #Changes 50 vector array state to variables, 
                 inputs = Variable(inputs)
+                #Changes 0 or 1 rating state #check what variable does #maybe allows the two to not be connected
                 targets = Variable(targets)
-
+                #Clears the gradients of all optimized weights #### not sure if weights #### function description is tensors ####
                 optimizer.zero_grad()
+                #Saves calculated sentance reviews 
                 outputs = self.model(inputs)
+                #Calls function defined as criterion to find MSE
                 loss = criterion(outputs, targets)
                 train_cost += loss
-                loss.backward()
-                optimizer.step()
+                loss.backward()#research exact function of loss.backward
+                
+                optimizer.step()#research exact function of optimizer.step
                 
             self.costs.append(train_cost/len(data))
             print('cost: %f' %(self.costs[-1]))
 
+#defines class as trainer
 trainer = Trainer(model, data)
-
 #Train the data
-trainer.train(0.005, 100)
+trainer.train(0.005, 2)
 plt.plot(range(len(trainer.costs)), trainer.costs)    
 
       
 ###Predictor
+################################TEST##########################
+
+path = '/Users/Ola/Documents/School/Keio/AI/senti_binary.test'
+review=revfile_clean() 
+predictor=neural_network_sentiment()
+
+outputs=dataloader.seperator_out()
+inputs=dataloader.seperator_in()
+data=list(zip(inputs,outputs))
+
+
+ac_outputs=[]
+ac_cor=0
+ac_tot=0
+
+
+class Predictor():
+    
+    def __init__(self, model, data):
+        
+        self.model = model
+        self.data = inputs
+        
+        self.train_loader = torch.utils.data.DataLoader(dataset=self.data, batch_size=10, shuffle=True)
+        
+    def pred(self, model, data):
+        
+        self.model.train()
+        self.costs = []
+        
+
+        for sup in self.data:
+        #Changes 50 vector array state #check what variable does
+            inputs = Variable(torch.from_numpy(sup))
+        #Saves calculated sentance reviews 
+            outputs = self.model(inputs)
+            return outputs
+        
+predictor=Predictor(model, data)
+
+svar=predictor.pred(model, inputs)
+
 class neural_network_sentiment(nn.Module):
     def __init__(self):
         super().__init__()
@@ -205,12 +272,7 @@ def Predictor(review):
     
 
 ###Accuracy for predictor        
-path = '/Users/Ola/Documents/School/Keio/AI/senti_binary.test'
-review=revfile_clean() 
-predictor=neural_network_sentiment()
-ac_outputs=[]
-ac_cor=0
-ac_tot=0
+
 #sentence_to_mean_embeddings()
 
 ac_outputs=[]
